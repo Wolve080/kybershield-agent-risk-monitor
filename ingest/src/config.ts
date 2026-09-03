@@ -1,8 +1,5 @@
 import dotenv from "dotenv";
 
-// Resolved relative to process.cwd(), not this file's location. All npm
-// scripts run from the repo root (where package.json lives), so the
-// default lookup already finds the root .env — matches migrate.ts.
 dotenv.config();
 
 function required(name: string): string {

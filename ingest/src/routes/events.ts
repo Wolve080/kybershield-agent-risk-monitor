@@ -15,8 +15,7 @@ const INSERT_SQL = `
 eventsRouter.post("/", async (req, res) => {
   const parsed = eventSchema.safeParse(req.body);
   if (!parsed.success) {
-    // Never log the whole payload — it may contain the exact secrets this
-    // product exists to detect. Log the event_id and failing fields only.
+    // don't log the raw payload, it can contain the secrets we're scanning for
     const rawEventId = req.body?.event_id;
     logger.warn(
       {

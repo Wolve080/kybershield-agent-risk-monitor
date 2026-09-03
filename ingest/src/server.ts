@@ -10,7 +10,7 @@ const app = express();
 app.use(pinoHttp({ logger }));
 app.use(express.json({ limit: config.maxBodyBytes }));
 
-// Unauthenticated: health checks shouldn't need credentials.
+// no auth on health checks
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -32,8 +32,7 @@ function isPayloadTooLarge(err: unknown): boolean {
   );
 }
 
-// Error middleware — must take exactly four parameters; that arity is how
-// Express identifies it as an error handler rather than a normal one.
+// needs all 4 params or express won't treat it as an error handler
 app.use(
   (
     err: unknown,
@@ -60,8 +59,7 @@ const server = app.listen(config.port, () => {
   logger.info(`listening on ${config.port}`);
 });
 
-// Guards against a client opening a socket and dribbling bytes forever
-// (a "slowloris" attack) rather than sending a request promptly.
+// slowloris mitigation - don't let a client hold the connection open forever
 server.requestTimeout = 10_000;
 server.headersTimeout = 12_000;
 

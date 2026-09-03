@@ -1,11 +1,7 @@
 import { z } from "zod";
 
-// .strict() on the envelope: unexpected top-level fields are rejected.
-// payload stays z.record(z.string(), z.unknown()) — deliberately permissive.
-// The brief lists four known event types, but an unrecognized type must
-// still be accepted and stored raw rather than rejected: a security
-// monitor that discards events it doesn't recognize is worse than
-// useless, because the novel event is exactly the one worth keeping.
+// envelope is strict (unknown top-level fields rejected), payload is not —
+// an event type we don't recognize yet should still get stored, not dropped
 export const eventSchema = z
   .object({
     event_id: z.string().min(1),

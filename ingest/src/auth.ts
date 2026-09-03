@@ -9,12 +9,8 @@ function sha256(s: string): Buffer {
   return createHash("sha256").update(s).digest();
 }
 
-// Constant-time comparison: hashing first means both buffers are always
-// 32 bytes, so timingSafeEqual never throws on a length mismatch (which
-// would itself leak information), and plain === is avoided because it
-// short-circuits at the first differing character — how long the
-// comparison takes would otherwise reveal how many leading characters
-// of a guessed key were correct.
+// hash first so both buffers are always 32 bytes (timingSafeEqual throws
+// on a length mismatch) and comparison time doesn't leak key length/content
 function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(sha256(a), sha256(b));
 }
@@ -32,8 +28,7 @@ export function requireApiKey(req: Request, res: Response, next: NextFunction) {
 
   const presented = header.slice(BEARER_PREFIX.length);
 
-  // Compare against every configured key — never break out early — so
-  // the response time doesn't vary with which key (if any) matches.
+  // don't break early, keeps timing independent of which key matches
   let matchedClient: string | undefined;
   for (const [storedKey, clientName] of config.apiKeys) {
     if (safeEqual(presented, storedKey)) {
