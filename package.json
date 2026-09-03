@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate": "tsx ingest/src/migrate.ts"
+    "migrate": "tsx ingest/src/migrate.ts",
+    "dev": "tsx watch ingest/src/server.ts",
+    "start": "tsx ingest/src/server.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
