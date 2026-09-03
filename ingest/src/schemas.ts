@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // .strict() on the envelope: unexpected top-level fields are rejected.
 // payload stays z.record(z.string(), z.unknown()) — deliberately permissive.

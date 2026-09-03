@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { eventSchema } from '../schemas.js';
-import { pool } from '../db.js';
-import { logger } from '../logger.js';
+import { Router } from "express";
+import { eventSchema } from "../schemas.js";
+import { pool } from "../db.js";
+import { logger } from "../logger.js";
 
 export const eventsRouter = Router();
 
@@ -12,7 +12,7 @@ const INSERT_SQL = `
   RETURNING event_id
 `;
 
-eventsRouter.post('/', async (req, res) => {
+eventsRouter.post("/", async (req, res) => {
   const parsed = eventSchema.safeParse(req.body);
   if (!parsed.success) {
     // Never log the whole payload — it may contain the exact secrets this
@@ -20,12 +20,14 @@ eventsRouter.post('/', async (req, res) => {
     const rawEventId = req.body?.event_id;
     logger.warn(
       {
-        event_id: typeof rawEventId === 'string' ? rawEventId : undefined,
-        fields: parsed.error.issues.map((issue) => issue.path.join('.')),
+        event_id: typeof rawEventId === "string" ? rawEventId : undefined,
+        fields: parsed.error.issues.map((issue) => issue.path.join(".")),
       },
-      'event failed validation',
+      "event failed validation",
     );
-    res.status(400).json({ error: 'invalid_event', issues: parsed.error.issues });
+    res
+      .status(400)
+      .json({ error: "invalid_event", issues: parsed.error.issues });
     return;
   }
 
@@ -42,13 +44,14 @@ eventsRouter.post('/', async (req, res) => {
     ]);
 
     if (result.rowCount === 1) {
-      res.status(201).json({ status: 'stored', event_id });
+      res.status(201).json({ status: "stored", event_id });
     } else {
-      res.status(200).json({ status: 'duplicate', event_id });
+      res.status(200).json({ status: "duplicate", event_id });
     }
   } catch (err) {
-    const code = err && typeof err === 'object' && 'code' in err ? err.code : undefined;
-    logger.error({ event_id, code }, 'failed to insert event');
-    res.status(500).json({ error: 'internal_error' });
+    const code =
+      err && typeof err === "object" && "code" in err ? err.code : undefined;
+    logger.error({ event_id, code }, "failed to insert event");
+    res.status(500).json({ error: "internal_error" });
   }
 });
