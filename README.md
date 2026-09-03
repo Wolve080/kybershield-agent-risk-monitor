@@ -66,7 +66,7 @@ Postgres is already running from `docker compose up -d`.
 
 ## Try it
 
-All routes except `/health` require `Authorization: Bearer `. Valid keys are in `API_KEYS` in `.env` (format `client:key,client2:key2`) — the shipped default is `dev-key-please-change`.
+All routes except `/health` require `Authorization: Bearer <key>`. Valid keys are in `API_KEYS` in `.env` (format `client:key,client2:key2`) — the shipped default is `dev-key-please-change`.
 
 ```bash
 curl localhost:3000/health
@@ -93,7 +93,22 @@ curl -H 'authorization: Bearer dev-key-please-change' localhost:3000/v1/agents/a
 ```
 
 On Windows PowerShell, `curl` is aliased to `Invoke-WebRequest` and won't accept curl flags — use `curl.exe` (shipped with Windows) instead, and `` ` ``
-instead of `\` for line continuation.
+instead of `\` for line continuation. For GETs that's enough. For the `POST` above, PowerShell's argument passing to native executables can mangle the JSON body's embedded double quotes and turn a valid request into a `400 invalid_json` (or worse). Use `Invoke-RestMethod` instead — it builds the request natively, with no native-exe quoting involved:
+
+```powershell
+$body = @{
+  event_id  = "evt-1"
+  agent_id  = "agent-a"
+  timestamp = "2026-09-03T12:00:00Z"
+  type      = "file_read"
+  payload   = @{ path = "/home/user/.ssh/id_rsa" }
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/v1/events" `
+  -Headers @{ Authorization = "Bearer dev-key-please-change" } `
+  -ContentType "application/json" `
+  -Body $body
+```
 
 ## API reference
 

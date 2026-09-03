@@ -27,13 +27,10 @@ app.use("/v1/events", requireApiKey, eventsRouter);
 app.use("/v1/alerts", requireApiKey, alertsRouter);
 app.use("/v1/agents", requireApiKey, agentsRouter);
 
-function isPayloadTooLarge(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "type" in err &&
-    (err as { type?: unknown }).type === "entity.too.large"
-  );
+function bodyParserErrorType(err: unknown): unknown {
+  return typeof err === "object" && err !== null && "type" in err
+    ? (err as { type?: unknown }).type
+    : undefined;
 }
 
 // needs all 4 params or express won't treat it as an error handler
@@ -49,8 +46,14 @@ app.use(
       return;
     }
 
-    if (isPayloadTooLarge(err)) {
+    const type = bodyParserErrorType(err);
+    if (type === "entity.too.large") {
       res.status(413).json({ error: "payload_too_large" });
+      return;
+    }
+    if (type === "entity.parse.failed" || err instanceof SyntaxError) {
+      logger.warn({ err }, "request body is not valid JSON");
+      res.status(400).json({ error: "invalid_json" });
       return;
     }
 
