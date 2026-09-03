@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// envelope is strict (unknown top-level fields rejected), payload is not —
-// an event type we don't recognize yet should still get stored, not dropped
 export const eventSchema = z
   .object({
     event_id: z.string().min(1),

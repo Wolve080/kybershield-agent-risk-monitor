@@ -3,3 +3,7 @@ dist/
 *.log
 .env
 .env.local
+
+.venv/
+__pycache__/
+*.pyc

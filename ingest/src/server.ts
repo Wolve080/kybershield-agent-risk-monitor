@@ -5,6 +5,8 @@ import { logger } from "./logger.js";
 import { pool } from "./db.js";
 import { requireApiKey } from "./auth.js";
 import { eventsRouter } from "./routes/events.js";
+import { alertsRouter } from "./routes/alerts.js";
+import { agentsRouter } from "./routes/agents.js";
 
 const app = express();
 app.use(pinoHttp({ logger }));
@@ -22,6 +24,8 @@ app.get("/health", async (_req, res) => {
 });
 
 app.use("/v1/events", requireApiKey, eventsRouter);
+app.use("/v1/alerts", requireApiKey, alertsRouter);
+app.use("/v1/agents", requireApiKey, agentsRouter);
 
 function isPayloadTooLarge(err: unknown): boolean {
   return (
