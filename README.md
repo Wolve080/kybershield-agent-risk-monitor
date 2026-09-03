@@ -1,7 +1,6 @@
 # KyberShield Agent Risk Monitor MVP
 
-A small local system that ingests AI agent activity events, runs them through
-a rule-based risk analyzer, and exposes the resulting alerts. Three pieces:
+A lightweight local system that consumes AI agent activity events into a rule-based risk analyzer and exposes the alerts. Three components:
 
 | Component   | Stack                | Does                                                |
 | ----------- | -------------------- | --------------------------------------------------- |
@@ -9,10 +8,7 @@ a rule-based risk analyzer, and exposes the resulting alerts. Three pieces:
 | `analyzer/` | Python / psycopg     | Scans new events, generates alerts                  |
 | Postgres    | `docker-compose.yml` | `events` + `alerts` tables (see `migrations/`)      |
 
-The ingest service also serves the "insights" read endpoints (Task 3) — one
-Express app, ingestion and querying both authenticated with the same bearer
-tokens. See [SOLUTION.md](SOLUTION.md) for why, and for the rest of the
-design decisions and trade-offs.
+The ingest service also provides the "insights" read endpoints (Task 3) — one Express app, ingestion and querying both are authenticated with the same bearer tokens. See [SOLUTION.md](SOLUTION.md) for why, and the rest of the design decisions and trade-offs.
 
 ## Prerequisites
 
@@ -20,8 +16,7 @@ design decisions and trade-offs.
 - Node.js 20+
 - Python 3.12+
 
-On Windows, if bare `python`/`py` resolve to the Microsoft Store stub or a
-stale launcher entry, use the interpreter explicitly: `py -3.12`.
+On Windows, if bare `python`/`py` resolves to the Microsoft Store stub or old launcher entry, be explicit about the interpreter: `py -3.12`.
 
 ## Setup
 
@@ -35,16 +30,27 @@ npm run migrate
 
 # 3. Python deps (from repo root, so analyzer picks up the root .env)
 py -3.12 -m venv .venv
-.venv\Scripts\pip install -r analyzer\requirements.txt   # Windows
-# source .venv/bin/activate && pip install -r analyzer/requirements.txt   # macOS/Linux
+.venv\Scripts\pip install -r analyzer\requirements.txt  # Windows
+# source .venv/bin/activate && pip install -r analyzer/requirements.txt  # macOS/Linux
 
-# 4. env vars — .env.example documents every var; copy it if you don't have .env yet
-cp .env.example .env
+# 4. env vars — create .env in the repo root:
+cat > .env <<'ENV'
+DATABASE_URL=postgres://kybershield:localdev@localhost:5433/kybershield
+PORT=3000
+LOG_LEVEL=info
+API_KEYS=fleet-1:change-me
+MAX_BODY_BYTES=524288
+ALLOWED_DOMAINS=api.github.com,api.openai.com,registry.npmjs.org
+SENSITIVE_READ_THRESHOLD=3
+SENSITIVE_READ_WINDOW_SECONDS=300
+ANALYZER_BATCH_SIZE=100
+ANALYZER_POLL_SECONDS=5
+ENV
 ```
 
 ## Run
 
-Three processes, each in its own terminal:
+Three processes, each in their own terminal:
 
 ```bash
 # ingest + insights API, http://localhost:3000
@@ -56,27 +62,25 @@ npm run dev
 .venv\Scripts\python -m analyzer.main --once
 ```
 
-Postgres is already up from `docker compose up -d`.
+Postgres is already running from `docker compose up -d`.
 
 ## Try it
 
-All routes except `/health` require `Authorization: Bearer <key>`. Valid
-keys live in `API_KEYS` in `.env` (format `client:key,client2:key2`) — the
-shipped default is `dev-key-please-change`.
+All routes except `/health` require `Authorization: Bearer `. Valid keys are in `API_KEYS` in `.env` (format `client:key,client2:key2`) — the shipped default is `dev-key-please-change`.
 
 ```bash
 curl localhost:3000/health
 
 curl -i -X POST localhost:3000/v1/events \
-  -H 'content-type: application/json' \
-  -H 'authorization: Bearer dev-key-please-change' \
-  -d '{"event_id":"evt-1","agent_id":"agent-a","timestamp":"2026-09-03T12:00:00Z","type":"file_read","payload":{"path":"/home/user/.ssh/id_rsa"}}'
+-H 'content-type: application/json' \
+-H 'authorization: Bearer dev-key-please-change' \
+-d '{"event_id":"evt-1","agent_id":"agent-a","timestamp":"2026-09-03T12:00:00Z","type":"file_read","payload":{"path":"/home/user/.ssh/id_rsa"}}'
 
 # same event_id again -> 200 duplicate, not a second row
 curl -i -X POST localhost:3000/v1/events \
-  -H 'content-type: application/json' \
-  -H 'authorization: Bearer dev-key-please-change' \
-  -d '{"event_id":"evt-1","agent_id":"agent-a","timestamp":"2026-09-03T12:00:00Z","type":"file_read","payload":{"path":"/home/user/.ssh/id_rsa"}}'
+-H 'content-type: application/json' \
+-H 'authorization: Bearer dev-key-please-change' \
+-d '{"event_id":"evt-1","agent_id":"agent-a","timestamp":"2026-09-03T12:00:00Z","type":"file_read","payload":{"path":"/home/user/.ssh/id_rsa"}}'
 ```
 
 Run the analyzer (`python -m analyzer.main --once`), then:
@@ -88,9 +92,8 @@ curl -H 'authorization: Bearer dev-key-please-change' localhost:3000/v1/agents/a
 curl -H 'authorization: Bearer dev-key-please-change' localhost:3000/v1/agents/agent-a/timeline
 ```
 
-On Windows PowerShell, `curl` is aliased to `Invoke-WebRequest` and won't
-accept curl flags — use `curl.exe` (ships with Windows) instead, and `` ` ``
-for line continuation instead of `\`.
+On Windows PowerShell, `curl` is aliased to `Invoke-WebRequest` and won't accept curl flags — use `curl.exe` (shipped with Windows) instead, and `` ` ``
+instead of `\` for line continuation.
 
 ## API reference
 
@@ -117,7 +120,7 @@ for line continuation instead of `\`.
 
 ## Risk rules
 
-Implemented in `analyzer/rules.py`:
+In `analyzer/rules.py`:
 
 | Rule                         | Fires on                                                                                          | Severity                    |
 | ---------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------- |
@@ -130,33 +133,31 @@ Implemented in `analyzer/rules.py`:
 ## Testing / verification
 
 ```bash
-npm run typecheck     # tsc --noEmit
-npm run format:check  # prettier --check .
+npm run typecheck   # tsc --noEmit
+npm run format:check # prettier --check .
 ```
 
-There's no automated test suite (out of scope for the ±4h estimate) — the
-ingest, dedup, analyzer-dedup, and insights behaviors were verified manually
-against the running system; see the commit history for the exact commands
-and results.
+No automated test suite (out of scope for the ±4h estimate), but ingest, dedup, analyzer-dedup, and insights behaviors were manually verified against the running system; see the commit history for the exact commands and results.
 
 ## Repo layout
 
 ```
+
 ingest/src/
-  config.ts, db.ts, logger.ts   env config, pg pool, structured logger
-  auth.ts                       bearer-token middleware
-  schemas.ts                    zod event envelope
-  routes/events.ts              POST /v1/events
-  routes/alerts.ts              GET /v1/alerts
-  routes/agents.ts              GET /v1/agents/:id/summary, /timeline
-  server.ts                     wiring, error handling, timeouts, shutdown
-  migrate.ts                    applies migrations/*.sql in order
+config.ts, db.ts, logger.ts  env config, pg pool, structured logger
+auth.ts            bearer-token middleware
+schemas.ts          zod event envelope
+routes/events.ts       POST /v1/events
+routes/alerts.ts       GET /v1/alerts
+routes/agents.ts       GET /v1/agents/:id/summary, /timeline
+server.ts           wiring, error handling, timeouts, shutdown
+migrate.ts          applies migrations/.sql in order
 
 analyzer/
-  config.py, db.py              env config, psycopg connection
-  rules.py                      the 5 rules above
-  main.py                       poll loop / --once, alert dedup
+config.py, db.py       env config, psycopg connection
+rules.py           the 5 rules above
+main.py            poll loop / --once, alert dedup
 
-migrations/001_init.sql         events + alerts schema
-docker-compose.yml              Postgres
+migrations/001_init.sql     events + alerts schema
+docker-compose.yml       Postgres
 ```
