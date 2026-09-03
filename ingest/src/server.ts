@@ -10,6 +10,21 @@ import { agentsRouter } from "./routes/agents.js";
 
 const app = express();
 app.use(pinoHttp({ logger }));
+
+// local-only prototype: allow any browser origin to call this API. Auth is
+// still enforced by requireApiKey below - this only affects which pages a
+// browser will let make the request, not who's allowed to do anything.
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 app.use(express.json({ limit: config.maxBodyBytes }));
 
 // no auth on health checks
