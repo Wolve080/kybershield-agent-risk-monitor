@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Try the Risk Monitor yourself</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f8f4;
+    --surface: #ffffff;
+    --surface-2: #eaf0e7;
+    --ink: #232a1e;
+    --ink-muted: #5b6653;
+    --ink-faint: #8b9482;
+    --accent: #2f6b4e;
+    --accent-ink: #e6f1ea;
+    --tip: #a8681a;
+    --tip-bg: #fbf1de;
+    --rule: #dce3d7;
+    --code-bg: #eef2ea;
+    --code-ink: #263626;
+    --shadow: 0 1px 2px rgba(35, 42, 30, 0.05), 0 10px 28px rgba(35, 42, 30, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12160e;
+      --surface: #191f14;
+      --surface-2: #20281a;
+      --ink: #e8ede3;
+      --ink-muted: #a3af97;
+      --ink-faint: #6e795f;
+      --accent: #66c290;
+      --accent-ink: #142a1f;
+      --tip: #e2ac54;
+      --tip-bg: #2a2211;
+      --rule: #2b3324;
+      --code-bg: #1a2115;
+      --code-ink: #d9e6d3;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12160e; --surface: #191f14; --surface-2: #20281a;
+    --ink: #e8ede3; --ink-muted: #a3af97; --ink-faint: #6e795f;
+    --accent: #66c290; --accent-ink: #142a1f;
+    --tip: #e2ac54; --tip-bg: #2a2211;
+    --rule: #2b3324; --code-bg: #1a2115; --code-ink: #d9e6d3;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px "Nunito", -apple-system, "Segoe UI", sans-serif; line-height: 1.65; }
+  h1, h2, h3 { font-family: "Fredoka", "Nunito", sans-serif; color: var(--ink); text-wrap: balance; font-weight: 600; }
+  code, .mono, pre { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; }
+  a { color: var(--accent); }
+  img { max-width: 100%; }
+
+  .wrap { max-width: 700px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+  .hero { margin-bottom: 2.75rem; }
+  .hero .kicker { font-weight: 700; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 2.7rem); margin: 0 0 0.9rem; line-height: 1.12; }
+  .hero p { font-size: 1.08rem; color: var(--ink-muted); max-width: 56ch; margin: 0 0 0.6rem; }
+  .hero .time { display: inline-flex; align-items: center; gap: 0.5em; background: var(--surface); border: 1px solid var(--rule); border-radius: 999px; padding: 0.4em 0.9em; font-size: 0.85rem; color: var(--ink-muted); margin-top: 0.6rem; }
+
+  .explainer {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 2.75rem;
+    box-shadow: var(--shadow);
+  }
+  .explainer p { margin: 0 0 0.9rem; }
+  .explainer p:last-child { margin-bottom: 0; }
+  .explainer strong { color: var(--accent); }
+
+  .step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 1rem;
+    margin-bottom: 2.6rem;
+  }
+  .step .num {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fredoka", sans-serif;
+    font-weight: 600; font-size: 1.15rem;
+    flex: none;
+  }
+  .step .body { min-width: 0; padding-top: 0.15rem; }
+  .step h2 { font-size: 1.3rem; margin: 0 0 0.35rem; }
+  .step .why { color: var(--ink-muted); font-size: 0.96rem; margin-bottom: 1rem; max-width: 54ch; }
+
+  .substep { margin-bottom: 1.1rem; }
+  .substep .label { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.4rem; }
+  .substep .label .n { color: var(--accent); }
+
+  .install-list { display: grid; gap: 0.8rem; margin-bottom: 0.4rem; }
+  .install-item {
+    display: grid; grid-template-columns: 34px 1fr auto;
+    align-items: center; gap: 0.85rem;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 0.75rem 1rem;
+  }
+  .install-item .icon { font-size: 1.4rem; }
+  .install-item .name { font-weight: 700; font-size: 0.95rem; }
+  .install-item .desc { color: var(--ink-muted); font-size: 0.86rem; display: block; font-weight: 400; }
+  .install-item a.get {
+    font-size: 0.82rem; font-weight: 700; color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: 999px; padding: 0.35em 0.9em;
+    text-decoration: none; white-space: nowrap;
+  }
+
+  .codeblock { position: relative; margin: 0 0 0.9rem; }
+  pre {
+    background: var(--code-bg); color: var(--code-ink);
+    border: 1px solid var(--rule); border-radius: 10px;
+    padding: 0.95rem 3.2rem 0.95rem 1.05rem;
+    overflow-x: auto; font-size: 0.86rem; line-height: 1.6; margin: 0;
+  }
+  .copy-btn {
+    position: absolute; top: 0.55rem; right: 0.55rem;
+    font-family: "Nunito", sans-serif; font-weight: 700; font-size: 0.72rem;
+    background: var(--surface); color: var(--ink-muted);
+    border: 1px solid var(--rule); border-radius: 6px;
+    padding: 0.3em 0.6em; cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); }
+
+  .tip {
+    background: var(--tip-bg); border: 1px solid color-mix(in srgb, var(--tip) 35%, transparent);
+    border-radius: 10px; padding: 0.85rem 1rem; font-size: 0.9rem; color: var(--ink);
+    margin: 0.9rem 0;
+  }
+  .tip strong { color: var(--tip); }
+
+  .field-guide { display: grid; gap: 0.9rem; margin: 1rem 0; }
+  .field {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 0.9rem 1.05rem;
+  }
+  .field .fname { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.25rem; }
+  .field .fdesc { color: var(--ink-muted); font-size: 0.9rem; }
+
+  hr.div { border: none; border-top: 1px dashed var(--rule); margin: 3rem 0; }
+
+  .faq-item { margin-bottom: 1.3rem; }
+  .faq-item .q { font-weight: 700; margin-bottom: 0.3rem; }
+  .faq-item .a { color: var(--ink-muted); font-size: 0.95rem; }
+
+  .end-note {
+    background: var(--accent-ink); border-radius: 14px; padding: 1.6rem 1.7rem;
+    margin-top: 2.5rem; text-align: center;
+  }
+  .end-note p { margin: 0; color: var(--ink); }
+  .end-note .big { font-family: "Fredoka", sans-serif; font-size: 1.2rem; margin-bottom: 0.4rem; color: var(--accent); }
+
+  @media (max-width: 520px) {
+    .step { grid-template-columns: 34px 1fr; }
+    .step .num { width: 34px; height: 34px; font-size: 0.95rem; }
+    .install-item { grid-template-columns: 26px 1fr; }
+    .install-item a.get { grid-column: 1 / -1; justify-self: start; margin-top: 0.3rem; }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="kicker">A friendly, no-jargon guide</div>
+    <h1>Try the Risk Monitor yourself</h1>
+    <p>This walks you through setting up a small project on your own computer, then clicking around a test page to see it work — no coding experience needed, just copying and pasting.</p>
+    <span class="time">⏱️ about 20 minutes</span>
+  </div>
+
+  <div class="explainer">
+    <p><strong>What is this thing, really?</strong> Imagine a robot helper (an "AI agent") that can read files, browse the web, and run commands for you. Handy! But what if it accidentally opens a file full of passwords, or downloads something it shouldn't?</p>
+    <p>This project is like a <strong>security camera for robot helpers</strong>. Every time the robot does something, it gets written down. A little detective checks each thing that got written down, and if something looks risky — reading a password file, running a sketchy download — it raises a flag.</p>
+    <p>By the end of this guide, you'll have that whole system running on your computer, and a simple test page where <em>you</em> can pretend to be the robot and watch the flags get raised in real time.</p>
+  </div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <h2>Get three free tools installed</h2>
+      <p class="why">These are just programs your computer needs so it can run the project — like needing a DVD player before you can watch a DVD. If you already have these, skip to Step 2.</p>
+      <div class="install-list">
+        <div class="install-item">
+          <span class="icon">🐳</span>
+          <span><span class="name">Docker Desktop</span><span class="desc">Runs the project's filing cabinet (its database) in a little sealed box, so you don't have to install one yourself.</span></span>
+          <a class="get" href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Get it</a>
+        </div>
+        <div class="install-item">
+          <span class="icon">🟢</span>
+          <span><span class="name">Node.js</span><span class="desc">Lets your computer run the main program (the part that receives and stores everything the robot does).</span></span>
+          <a class="get" href="https://nodejs.org/" target="_blank" rel="noopener">Get it</a>
+        </div>
+        <div class="install-item">
+          <span class="icon">🐍</span>
+          <span><span class="name">Python</span><span class="desc">Lets your computer run the detective (the part that checks for risky behavior).</span></span>
+          <a class="get" href="https://www.python.org/downloads/" target="_blank" rel="noopener">Get it</a>
+        </div>
+      </div>
+      <div class="tip"><strong>Tip:</strong> install with all the default options — you won't need to change anything during setup. After installing Docker Desktop, open it once and leave it running in the background; everything else in this guide happens in a plain black window called a <em>terminal</em> (on Windows, search for "PowerShell" in the Start menu).</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <h2>Download the project</h2>
+      <p class="why">This copies all the project's files onto your computer, into a folder.</p>
+      <div class="substep">
+        <div class="label">Open a terminal, go somewhere you like (e.g. your Desktop), and run:</div>
+        <div class="codeblock"><pre><code>git clone https://github.com/Wolve080/kybershield-agent-risk-monitor.git
+cd kybershield-agent-risk-monitor</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="tip"><strong>No <code>git</code>?</strong> That's fine — go to <a href="https://github.com/Wolve080/kybershield-agent-risk-monitor" target="_blank" rel="noopener">the project's page</a>, click the green <strong>Code</strong> button, choose <strong>Download ZIP</strong>, then unzip it and open a terminal <em>inside</em> that unzipped folder.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="body">
+      <h2>Give it its secret settings</h2>
+      <p class="why">The project needs a few settings to work — like which password to accept, and where its filing cabinet lives. These live in one file so they're never accidentally shared or uploaded anywhere.</p>
+      <div class="substep">
+        <div class="label">Create a new file named exactly <code>.env</code> in the project folder, and paste this into it:</div>
+        <div class="codeblock"><pre><code>DATABASE_URL=postgres://kybershield:localdev@localhost:5433/kybershield
+PORT=3000
+LOG_LEVEL=info
+API_KEYS=fleet-1:dev-key-please-change
+MAX_BODY_BYTES=524288
+ALLOWED_DOMAINS=api.github.com,api.openai.com,registry.npmjs.org
+SENSITIVE_READ_THRESHOLD=3
+SENSITIVE_READ_WINDOW_SECONDS=300
+ANALYZER_BATCH_SIZE=100
+ANALYZER_POLL_SECONDS=5</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="tip"><strong>What's a "password" doing in plain text?</strong> <code>dev-key-please-change</code> is just a made-up test password for playing around on your own computer — it's not connected to anything real, so there's nothing to protect here.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div class="body">
+      <h2>Turn on the filing cabinet</h2>
+      <p class="why">This starts the database — the place everything gets written down. It runs quietly in the background.</p>
+      <div class="codeblock"><pre><code>docker compose up -d</code></pre><button class="copy-btn">Copy</button></div>
+      <p class="why" style="margin-top:0.6rem;">The first time, this downloads a small program — give it a minute. You'll know it worked if the terminal gives you back control without any red error text.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">5</div>
+    <div class="body">
+      <h2>Wake up the security guard</h2>
+      <p class="why">This is the main program — it's the one that will listen for things the robot does and write them down.</p>
+      <div class="substep">
+        <div class="label"><span class="n">1.</span> Install what it needs, and set up the filing cabinet's folders:</div>
+        <div class="codeblock"><pre><code>npm install
+npm run migrate</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="substep">
+        <div class="label"><span class="n">2.</span> Start it up — and leave this window open the whole time:</div>
+        <div class="codeblock"><pre><code>npm run dev</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="tip"><strong>How do I know it worked?</strong> You'll see a line ending in <code>"listening on 3000"</code>. That's it saying "I'm awake and ready." Minimize this window, but don't close it.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">6</div>
+    <div class="body">
+      <h2>Wake up the detective</h2>
+      <p class="why">This is the part that actually looks at what got written down and decides if anything looks risky. It needs its own new terminal window — leave Step 5's window running and open a fresh one.</p>
+      <div class="substep">
+        <div class="label"><span class="n">1.</span> In the new window, go back into the project folder, then set it up (only needed once):</div>
+        <div class="codeblock"><pre><code>cd kybershield-agent-risk-monitor
+python -m venv .venv
+.venv\Scripts\pip install -r analyzer\requirements.txt</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="tip">On a Mac or Linux computer, the last two lines are: <code>python3 -m venv .venv</code> then <code>.venv/bin/pip install -r analyzer/requirements.txt</code></div>
+      <div class="substep" style="margin-top:1rem;">
+        <div class="label"><span class="n">2.</span> Start it — and leave this window open too:</div>
+        <div class="codeblock"><pre><code>.venv\Scripts\python -m analyzer.main</code></pre><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="tip">Mac/Linux: <code>.venv/bin/python -m analyzer.main</code>. It won't print much at first — that's normal, it's just watching quietly.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">7</div>
+    <div class="body">
+      <h2>Open the control panel</h2>
+      <p class="why">This is a simple page in your web browser for pretending to be the robot, so you can watch the whole system react.</p>
+      <div class="tip"><strong><code>risk-monitor-tester.html</code> lives at the root of this repo.</strong> Just double-click it (or open it in a browser). It'll open straight away. (It's just a page on your own computer; nothing gets sent anywhere except to the program you started in Step 5.)</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">8</div>
+    <div class="body">
+      <h2>Play with it</h2>
+      <p class="why">Here's what everything on the control panel means:</p>
+      <div class="field-guide">
+        <div class="field"><div class="fname">Base URL / API key</div><div class="fdesc">Already filled in correctly — this is how the control panel talks to the security guard from Step 5. Leave these as they are.</div></div>
+        <div class="field"><div class="fname">Check /health</div><div class="fdesc">Click this first. A green pill means everything's connected. Red means one of your two windows from Steps 5–6 isn't running.</div></div>
+        <div class="field"><div class="fname">Post an event</div><div class="fdesc">This is you pretending to be the robot. Pick <code>file_read</code> from the dropdown, click <strong>Fill risky example</strong> (it'll load up a "read a password file" payload — a classic risky move), and click <strong>Send event</strong>.</div></div>
+        <div class="field"><div class="fname">Alerts</div><div class="fdesc">Wait about 10 seconds (the detective checks every few seconds), then click <strong>Fetch alerts</strong>. You should see a new row appear — that's the flag being raised, in real time.</div></div>
+        <div class="field"><div class="fname">Agent summary / timeline</div><div class="fdesc">Type <code>agent-tester</code> into the agent_id box and click fetch — these show a report card and a full history for one "robot," combining everything it did with everything that got flagged.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <h2 style="font-size:1.3rem;">When you're done</h2>
+  <p style="color:var(--ink-muted); max-width:54ch;">Go to each terminal window from Steps 5 and 6 and press <code>Ctrl</code> + <code>C</code>. Then, to turn off the filing cabinet too:</p>
+  <div class="codeblock"><pre><code>docker compose down</code></pre><button class="copy-btn">Copy</button></div>
+
+  <hr class="div">
+
+  <h2 style="font-size:1.3rem;">If something goes wrong</h2>
+  <div class="faq-item">
+    <div class="q">The control panel's health check is red.</div>
+    <div class="a">One of your two black windows (Step 5 or 6) probably got closed. Reopen a terminal, go back into the project folder, and run its start command again.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">"docker compose up" gives an error.</div>
+    <div class="a">Make sure the Docker Desktop app is actually open and running (look for its icon in your system tray/menu bar) before running that command.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">Nothing shows up under Alerts.</div>
+    <div class="a">Give it a few more seconds and click Fetch alerts again — the detective checks on a short delay, not instantly.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">I closed everything and want to start again tomorrow.</div>
+    <div class="a">You only need to repeat Steps 4, 5's second command, 6's second command, and 7 — the install parts (Steps 1–3, and the first commands in 5 and 6) only ever need doing once.</div>
+  </div>
+
+  <div class="end-note">
+    <p class="big">That's it!</p>
+    <p>You just ran a real event-monitoring pipeline end to end — stored an action, had it automatically risk-scored, and watched the result. Nothing to break, nothing saved anywhere but your own computer.</p>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const code = btn.previousElementSibling.textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 1500);
+      } catch {
+        btn.textContent = "Select & copy";
+      }
+    });
+  });
+</script>
+</body>
+</html>
